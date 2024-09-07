@@ -7,3 +7,4 @@ pypdf
 accelerate
 PyPDF2
 streamlit-pdf-viewer
+streamlit-shadcn-ui
