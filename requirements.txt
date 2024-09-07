@@ -1,3 +1,9 @@
 streamlit
+langchain
+langchain_community
 transformers
 torch
+pypdf
+accelerate
+PyPDF2
+streamlit-pdf-viewer
