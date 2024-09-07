@@ -7,6 +7,12 @@ from streamlit_pdf_viewer import pdf_viewer
 import torch
 import streamlit_shadcn_ui as ui
 
+
+st.set_page_config(
+    page_title="DR-Report",
+    page_icon="📄",
+    layout="wide",
+)
 # Load the medllama2_7b model and tokenizer from Hugging Face
 @st.cache_resource
 def load_model():
@@ -44,11 +50,6 @@ def llm(input_text):
   analysis = analysis[0]['summary_text']
   return analysis
 
-st.set_page_config(
-    page_title="DR-Report",
-    page_icon="📄",
-    layout="wide",
-)
 
 def main():
 
