@@ -44,10 +44,15 @@ def llm(input_text):
   analysis = analysis[0]['summary_text']
   return analysis
 
+st.set_page_config(
+    page_title="DR-Report",
+    page_icon="📄",
+    layout="wide",
+)
+
 def main():
 
     st.title("Medical Report Checker")
-    # st.caption("🚀 A Streamlit chatbot powered by medllama2_7b")
     uploaded_file = st.file_uploader("Upload your PDF file", type=['pdf'])
 
     if uploaded_file is not None:
@@ -67,3 +72,10 @@ def main():
                 st.info("Summarization Complete")
                 print(pdf_analysis)
                 st.success(pdf_analysis)
+    button(username="harshadsheelwant", floating=False, width=221)                
+    ui.link_button(text="My LinkedIN", url="https://www.linkedin.com/in/harshadsheelwant/", key="link_btn1", class_name="bg-black hover:bg-blue-500 text-white font-bold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded")
+    ui.link_button(text="My Github", url="https://github.com/harshadsheelwant", key="link_btn2", class_name="bg-black shadow-cyan-500/50 hover:bg-blue-500 text-white font-bold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded")
+
+
+if __name__ == '__main__':
+  main()
