@@ -6,6 +6,7 @@ from transformers import pipeline
 from streamlit_pdf_viewer import pdf_viewer
 import torch
 import streamlit_shadcn_ui as ui
+from streamlit_extras.buy_me_a_coffee import button
 
 
 st.set_page_config(
@@ -57,7 +58,7 @@ def main():
     uploaded_file = st.file_uploader("Upload your PDF file", type=['pdf'])
 
     if uploaded_file is not None:
-        if ui.button(text="Summarize PDF", key="styled_btn_tailwind_pdf", class_name="bg-orange-500 text-white"):
+        if ui.button(text="Check Report PDF", key="styled_btn_tailwind_pdf", class_name="bg-orange-500 text-white"):
             col1, col2 = st.columns(2)
             filepath = "data/"+uploaded_file.name
             with open(filepath, "wb") as temp_file:
