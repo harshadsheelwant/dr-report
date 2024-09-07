@@ -1,44 +1,69 @@
 import streamlit as st
-from transformers import AutoTokenizer, pipeline
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.document_loaders import PyPDFLoader, DirectoryLoader
+from transformers import AutoTokenizer
+from transformers import pipeline
+from streamlit_pdf_viewer import pdf_viewer
+import torch
+import streamlit_shadcn_ui as ui
 
+# Load the medllama2_7b model and tokenizer from Hugging Face
 @st.cache_resource
-def load_pipeline():
-    model_name = "ruslanmv/Medical-Llama3-8B"
-    
-    # Use the Hugging Face pipeline with a small model or hosted inference API
-    generator = pipeline("text-generation", model=model_name, tokenizer=model_name, device=0)  # Ensure it's set to CPU if deploying on Streamlit Cloud
-    return generator
+def load_model():
+    model =  "johnsnowlabs/JSL-MedLlama-3-8B-v2.0"
+    tokenizer = AutoTokenizer.from_pretrained(model)
+    return tokenizer, model
 
-generator = load_pipeline()
+tokenizer, model = load_model()
 
-# Function to generate a response using the pipeline
-def generate_response(question):
-    sys_message = ''' 
-    You are an AI Medical Assistant trained on a vast dataset of health information. Please be thorough and
-    provide an informative answer. If you don't know the answer to a specific medical inquiry, advise seeking professional help.
-    '''   
-    input_text = f"{sys_message}\n\nUser: {question}\nAssistant:"
-    
-    response = generator(input_text, max_new_tokens=100, do_sample=True, pad_token_id=50256)
-    answer = response[0]['generated_text'].split("Assistant:")[-1].strip()
-    
-    return answer
+# Function to generate response using medllama2_7b
+def file_preprocessing(file):
+    loader =  PyPDFLoader(file)
+    pages = loader.load_and_split()
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    texts = text_splitter.split_documents(pages)
+    final_texts = ""
+    for text in texts:
+        print(text)
+        final_texts = final_texts + text.page_content
+    return final_texts
 
-# Streamlit UI
-st.title("💬 Medical Chatbot")
-st.caption("🚀 Powered by a lightweight model")
+def displayPDF(file):
 
-if "messages" not in st.session_state:
-    st.session_state["messages"] = [{"role": "assistant", "content": "How can I help you?"}]
+    with open(file, "rb") as f:
+         pdf_viewer(f.read(), height=600, width=800)
 
-for msg in st.session_state.messages:
-    st.chat_message(msg["role"]).write(msg["content"])
+def llm(input_text):
+  pdf_analysis = pipeline('text-generation',
+                      model=model,
+                      torch_dtype=torch.float16,
+                      device_map="auto",
+                      max_length = 5000,
+                      min_length = 50)
+  analysis = pdf_analysis(input_text)
+  analysis = analysis[0]['summary_text']
+  return analysis
 
-if prompt := st.chat_input():
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    st.chat_message("user").write(prompt)
+def main():
 
-    # Generate response using the pipeline
-    msg = generate_response(prompt)
-    st.session_state.messages.append({"role": "assistant", "content": msg})
-    st.chat_message("assistant").write(msg)
+    st.title("Medical Report Checker")
+    # st.caption("🚀 A Streamlit chatbot powered by medllama2_7b")
+    uploaded_file = st.file_uploader("Upload your PDF file", type=['pdf'])
+
+    if uploaded_file is not None:
+        if ui.button(text="Summarize PDF", key="styled_btn_tailwind_pdf", class_name="bg-orange-500 text-white"):
+            col1, col2 = st.columns(2)
+            filepath = "data/"+uploaded_file.name
+            with open(filepath, "wb") as temp_file:
+                temp_file.write(uploaded_file.read())
+            with col1:
+                st.info("Uploaded File")
+                pdf_view = displayPDF(filepath)
+                input_text = file_preprocessing(filepath)
+                input_text = input_text[:5000]
+
+            with col2:
+                pdf_analysis = llm(input_text)
+                st.info("Summarization Complete")
+                print(pdf_analysis)
+                st.success(pdf_analysis)
